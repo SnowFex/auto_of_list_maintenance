@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+        <title>Книга учёта</title>
+</head>
+<body>
+   <form id="userForm">
+     <p>
+        Адрес: <br />
+        <input name="address" id="address" required />
+    </p>
+     <p>
+        Этаж: <br />
+        <input name="floor" id="floor" type="number" required />
+    </p>
+     <p>
+        ФИО сотрудника: <br />
+        <input name="full_name" id="full_name" required />
+    </p>
+     <p>
+        Должность: <br />
+        <input name="position_at_work" id="position_at_work" required />
+    </p>
+     <p>
+        Имя компьютера: <br />
+        <input name="computer_name" id="computer_name" required />
+    </p>
+     <p>
+        Рабочая группа: <br />
+        <input name="work_group" id="work_group" required />
+    </p>
+     <p>
+        Коментарий: <br />
+        <input name="comment" id="comment" required />
+    </p>
+
+    <button type="button" onclick="create_user()">Добавление</button>
+    <button type="button" onclick="edit_user()">изменение</button>
+    <input type="submit" value="удаление" />
+    <input type="reset" value="сбросить" />
+    </form>
+<script>
+
+async function create_user() {
+  const data = {
+    address: document.getElementById('address').value,
+    floor: document.getElementById('floor').value,
+    full_name: document.getElementById('full_name').value,
+    position_at_work: document.getElementById('position_at_work').value,
+    computer_name: document.getElementById('computer_name').value,
+    work_group: document.getElementById('work_group').value,
+    comment: document.getElementById('comment').value
+  };
+  const response = await fetch('http://127.0.0.1:8000/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data)
+  });
+  return response.json();
+}
+
+async function edit_user() {
+  const data_edit = {
+    address: document.getElementById('address').value,
+    floor: document.getElementById('floor').value,
+    position_at_work: document.getElementById('position_at_work').value,
+    computer_name: document.getElementById('computer_name').value,
+    work_group: document.getElementById('work_group').value,
+    comment: document.getElementById('comment').value
+  };
+  const response_edit = fetch('http://127.0.0.1:8000/update_user', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data_edit)
+  });
+  return response_edit.json();
+  }
+</script>
+</body>
+</html>

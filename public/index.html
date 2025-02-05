@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+        <title>Книга учёта</title>
+</head>
+<body>
+    <form id="noteForm"></form>
+    <div id="message"></div>
+     <p>
+        Адрес: <br />
+        <input id="address" />
+    </p>
+     <p>
+        Этаж: <br />
+        <input id="floor" type="number" />
+    </p>
+     <p>
+        ФИО сотрудника: <br />
+        <input id="full_name" />
+    </p>
+     <p>
+        Должность: <br />
+        <input id="position_at_work" />
+    </p>
+     <p>
+        Имя компьютера: <br />
+        <input id="computer_name" />
+    </p>
+     <p>
+        Рабочая группа: <br />
+        <input id="work_group" />
+    </p>
+     <p>
+        Коментарий: <br />
+        <input id="comment" />
+    </p>
+    <button id="saveBtn">Сохранить</button>
+    <button id="resetBtn">Сбросить</button>
+    <table>
+        <tbody>
+        </tbody>
+    </table>
+<script>
+    document.getElementById("noteForm").addEventListener("saveBtn", async function(event) {
+        event.preventDefault();
+    })
+    async function createUser(address, floor, full_name, position_at_work, computer_name, work_group, comment) {
+        const response = await fetch("/create", {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({
+        address: address,
+        floor: parseInt(floor, 10),
+        full_name: full_name,
+        position_at_work: position_at_work,
+        computer_name: computer_name,
+        work_group: work_group,
+        comment: comment
+    })
+});
+if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector("tbody").append(row(user));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+  
+        // сброс данных формы после отправки
+        function reset() {
+            document.getElementById("address").value = 
+            document.getElementById("floor").value =
+            document.getElementById("full_name").value =
+            document.getElementById("position_at_work").value =
+            document.getElementById("computer_name").value =
+            document.getElementById("work_group").value = 
+            document.getElementById("comment").value = "";
+        }
+        function row(user) {
+  
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", user.id);
+  
+            const nameTd = document.createElement("td");
+            nameTd.append(user.name);
+            tr.append(nameTd);
+  
+            const ageTd = document.createElement("td");
+            ageTd.append(user.age);
+            tr.append(ageTd);
+  
+            const linksTd = document.createElement("td");
+  
+            const editLink = document.createElement("button"); 
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async() => await getUser(user.id));
+            linksTd.append(editLink);
+  
+            const removeLink = document.createElement("button"); 
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+  
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+  
+            return tr;
+        }
+        function row(user) {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", user.id);
+
+            const nameTd = document.createElement("td");
+            nameTd.append(user.name);
+            tr.append(nameTd);
+
+            const ageTd = document.createElement("td");
+            ageTd.append(user.age);
+            tr.append(ageTd);
+
+            const linksTd = document.createElement("td");
+
+            const editLink = document.createElement("button"); 
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async() => await getUser(user.id));
+            linksTd.append(editLink);
+
+            const removeLink = document.createElement("button"); 
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+            return tr;
+}
+        // сброс значений формы
+        document.getElementById("resetBtn").addEventListener("click", () =>  reset());
+  
+        // отправка формы
+        document.getElementById("saveBtn").addEventListener("click", async () => {
+             
+            const address = document.getElementById("address").value;
+            const floor = document.getElementById("floor").value;
+            const full_name = document.getElementById("full_name").value;
+            const position_at_work = document.getElementById("position_at_work").value;
+            const computer_name = document.getElementById("computer_name").value;
+            const work_group = document.getElementById("work_group").value;
+            const comment = document.getElementById("comment").value;
+            await createUser(address, floor, full_name, position_at_work, computer_name, work_group, comment);
+        });
+</script>
+</body>
+</html>
