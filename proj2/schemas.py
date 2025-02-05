@@ -6,9 +6,6 @@ from pydantic import BaseModel
 from pydantic import constr, conint
 from pydantic import validator
 
-#########################
-# BLOCK WITH API MODELS #
-#########################
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
