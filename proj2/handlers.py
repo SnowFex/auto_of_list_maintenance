@@ -31,7 +31,7 @@ def root():
 
 
 @user_router.post("/create", response_model=ShowUser)
-async def create_user(body: User_create = Form(), db: AsyncSession = Depends(get_async_session)) -> ShowUser:
+async def create_user(body: User_create, db: AsyncSession = Depends(get_async_session)) -> ShowUser:
     try:
         return await _create_new_user(body, db)
     except IntegrityError as err:
@@ -69,7 +69,7 @@ async def get_user_by_name(full_name: str, db: AsyncSession = Depends(get_async_
 
 @user_router.patch("/update_user", response_model=UpdatedUserResponse)
 async def update_user_by_name(
-    name: str,
+    full_name: str,
     body: UpdateUserRequest,
     db: AsyncSession = Depends(get_async_session),
 ) -> UpdatedUserResponse:
@@ -79,13 +79,13 @@ async def update_user_by_name(
             status_code=422,
             detail="At least one parameter for user update info should be provided",
         )
-    user_for_update = await _get_user_by_name(name, db)
+    user_for_update = await _get_user_by_name(full_name, db)
     if user_for_update is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {name} not found."
+            status_code=404, detail=f"User with id {full_name} not found."
         )
     try:
-        updated_user_name = await _update_user(full_name=name, updated_user_params=updated_user_params, session=db)
+        updated_user_name = await _update_user(full_name=full_name, updated_user_params=updated_user_params, session=db)
     except IntegrityError as err:
         logger.error(err)
         raise HTTPException(status_code=503, detail=f"Database error: {err}")

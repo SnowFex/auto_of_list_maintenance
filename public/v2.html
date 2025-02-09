@@ -5,7 +5,7 @@
         <title>Книга учёта</title>
 </head>
 <body>
-   <form id="userForm">
+   <form method="post" action="http://127.0.0.1:8000/create">
      <p>
         Адрес: <br />
         <input name="address" id="address" required />
@@ -32,25 +32,24 @@
     </p>
      <p>
         Коментарий: <br />
-        <input name="comment" id="comment" required />
+        <input name="comment" id="comment" />
     </p>
-
     <button type="button" onclick="create_user()">Добавление</button>
     <button type="button" onclick="edit_user()">изменение</button>
-    <input type="submit" value="удаление" />
+    <button type="button" onclick="delete_user()">Удаление</button>
     <input type="reset" value="сбросить" />
     </form>
 <script>
 
 async function create_user() {
   const data = {
-    address: document.getElementById('address').value,
-    floor: document.getElementById('floor').value,
-    full_name: document.getElementById('full_name').value,
-    position_at_work: document.getElementById('position_at_work').value,
-    computer_name: document.getElementById('computer_name').value,
-    work_group: document.getElementById('work_group').value,
-    comment: document.getElementById('comment').value
+      address: document.getElementById('address').value,
+      floor: document.getElementById('floor').value,
+      full_name: document.getElementById('full_name').value,
+      position_at_work: document.getElementById('position_at_work').value,
+      computer_name: document.getElementById('computer_name').value,
+      work_group: document.getElementById('work_group').value,
+      comment: document.getElementById('comment').value
   };
   const response = await fetch('http://127.0.0.1:8000/create', {
     method: 'POST',
@@ -63,15 +62,21 @@ async function create_user() {
 }
 
 async function edit_user() {
+  const data_edit_name = {
+    full_name: document.getElementById('full_name').value
+  }
   const data_edit = {
     address: document.getElementById('address').value,
     floor: document.getElementById('floor').value,
+    full_name: document.getElementById('full_name').value,
     position_at_work: document.getElementById('position_at_work').value,
     computer_name: document.getElementById('computer_name').value,
     work_group: document.getElementById('work_group').value,
     comment: document.getElementById('comment').value
   };
-  const response_edit = fetch('http://127.0.0.1:8000/update_user', {
+  const url = new URL('http://127.0.0.1:8000/update_user')
+  url.searchParams.set('full_name', data_edit_name.full_name)
+  const response_edit = await fetch(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'
@@ -79,6 +84,22 @@ async function edit_user() {
     body: JSON.stringify(data_edit)
   });
   return response_edit.json();
+  }
+
+  async function delete_user() {
+    const data_delete = {
+    full_name: document.getElementById('full_name').value
+  };
+  const url = new URL('http://127.0.0.1:8000/delete')
+  url.searchParams.set('full_name', data_delete.full_name)
+  const response_delete = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data_delete)
+  });
+  return response_delete.json();
   }
 </script>
 </body>

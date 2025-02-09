@@ -6,6 +6,9 @@ from pydantic import BaseModel
 from pydantic import constr, conint
 from pydantic import validator
 
+#########################
+# BLOCK WITH API MODELS #
+#########################
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
@@ -58,4 +61,4 @@ class UpdateUserRequest(BaseModel):
     position_at_work: Optional[constr(min_length=1)]
     computer_name: Optional[constr(min_length=1)]
     work_group: Optional[constr(min_length=1)]
-    comment: Optional[constr(min_length=1)]
+    comment: Optional[constr()]
