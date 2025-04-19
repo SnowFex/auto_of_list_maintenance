@@ -22,21 +22,29 @@ class TunedModel(BaseModel):
 
 class ShowUser(TunedModel):
     address: str
-    floor: int
+    floor: str
+    cabinet: str
     full_name: str
     position_at_work: str
     computer_name: str
     work_group: str
+    ip_address: str
+    kaspersky: str
+    windows: str
 
 
 class UserCreate(BaseModel):
     address: str
-    floor: int
+    floor: str
+    cabinet: str
     full_name: str
     position_at_work: str
     computer_name: str
     work_group: str
+    ip_address: str
+    kaspersky: str
     comment: str
+    windows: str
 
     @validator("full_name")
     def validate_name(cls, value):
@@ -52,13 +60,17 @@ class DeleteUserResponse(BaseModel):
 
 
 class UpdatedUserResponse(BaseModel):
-    updated_user_name: str
+    updated_computer_name: str
 
 
 class UpdateUserRequest(BaseModel):
-    address: Optional[constr(min_length=1)]
-    floor: Optional[conint()]
-    position_at_work: Optional[constr(min_length=1)]
-    computer_name: Optional[constr(min_length=1)]
-    work_group: Optional[constr(min_length=1)]
-    comment: Optional[constr()]
+    address: Optional[constr()] = None
+    floor: Optional[constr()] = None
+    cabinet: Optional[constr()] = None
+    full_name: Optional[constr()] = None
+    position_at_work: Optional[constr()] = None
+    work_group: Optional[constr()] = None
+    ip_address: Optional[constr()] = None
+    kaspersky: Optional[constr()] = None
+    comment: Optional[str] = None
+    windows: Optional[constr()] = None

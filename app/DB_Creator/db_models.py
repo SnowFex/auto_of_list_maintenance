@@ -8,6 +8,7 @@ users = Table(
     metadata,
     Column("address", String, nullable=False),
     Column("floor", Integer, primary_key=True, nullable=False),
+    Column("cabinet", Integer, nullable=False),
     Column("full_name", String, nullable=False),
     Column("position_at_work", String, nullable=False),
     Column("computer_name", String, nullable=False),

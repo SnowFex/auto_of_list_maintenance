@@ -2,154 +2,386 @@
 <html>
 <head>
     <meta charset="utf-8">
-        <title>Книга учёта</title>
+    <title>Книга учёта</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none; /* Скрыто по умолчанию */
+            position: fixed; /* Оставаться на месте */
+            z-index: 1; /* Сидеть на вершине */
+            left: 0;
+            top: 0;
+            width: 100%; /* Полная ширина */
+            height: 100%; /* Полная высота */
+            overflow: auto; /* Включите прокрутку, если это необходимо */
+            background-color: rgb(0,0,0); /* Цвет запасной вариант */
+            background-color: rgba(0,0,0,0.4); /* Черный с непрозрачностью */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% от верхнего края и по центру */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Может быть больше или меньше, в зависимости от размера экрана */
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <form id="noteForm"></form>
-    <div id="message"></div>
-     <p>
+
+    <!-- Модальное окно регистрации -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход</h2>
+            <form id="registrationForm">
+                <p>
+                    Email: <br />
+                    <input type="email" name="email" id="email" required />
+                </p>
+                <p>
+                    Пароль: <br />
+                    <input type="password" name="hashed_password" id="hashed_password" required />
+                </p>
+                <button type="submit">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основной контент страницы -->
+    <p>
         Адрес: <br />
-        <input id="address" />
+        <input name="address" id="address" required />
     </p>
-     <p>
+    <p>
         Этаж: <br />
-        <input id="floor" type="number" />
+        <input name="floor" id="floor" type="number" required />
     </p>
-     <p>
+    <p>
+        Кабинет: <br />
+        <input name="cabinet" id="cabinet" type="number" required />
+    </p>
+    <p>
         ФИО сотрудника: <br />
-        <input id="full_name" />
+        <input name="full_name" id="full_name" required />
     </p>
-     <p>
+    <p>
         Должность: <br />
-        <input id="position_at_work" />
+        <input name="position_at_work" id="position_at_work" required />
     </p>
-     <p>
+    <p>
         Имя компьютера: <br />
-        <input id="computer_name" />
+        <input name="computer_name" id="computer_name" required />
     </p>
-     <p>
+    <p>
         Рабочая группа: <br />
-        <input id="work_group" />
+        <input name="work_group" id="work_group" required />
     </p>
-     <p>
-        Коментарий: <br />
-        <input id="comment" />
+    <p>
+        ip-адрес: <br />
+        <input name="ip_address" id="ip_address" required />
     </p>
-    <button id="saveBtn">Сохранить</button>
-    <button id="resetBtn">Сбросить</button>
-    <table>
-        <tbody>
-        </tbody>
-    </table>
-<script>
-    document.getElementById("noteForm").addEventListener("saveBtn", async function(event) {
-        event.preventDefault();
-    })
-    async function createUser(address, floor, full_name, position_at_work, computer_name, work_group, comment) {
-        const response = await fetch("/create", {
-        method: "POST",
-        headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({
-        address: address,
-        floor: parseInt(floor, 10),
-        full_name: full_name,
-        position_at_work: position_at_work,
-        computer_name: computer_name,
-        work_group: work_group,
-        comment: comment
-    })
-});
-if (response.ok === true) {
-                const user = await response.json();
-                document.querySelector("tbody").append(row(user));
+    <p>
+        Kaspersky: <br />
+        <input name="kaspersky" id="kaspersky" required />
+    </p>
+    <p>
+        Комментарий: <br />
+        <input name="comment" id="comment" />
+    </p>
+    <p>
+        Windows: <br />
+        <input name="windows" id="windows" required />
+    </p>
+    <button type="button" onclick="create_user()">Добавление</button>
+    <button type="button" onclick="edit_user()">Изменение</button>
+    <button type="button" onclick="delete_user()">Удаление</button>
+    <button type="button" onclick="get_user()">Поиск</button>
+    <input type="reset" value="Сбросить" />
+    </form>
+    <div id="user-info" style="margin-top: 40px;"></div>
+
+    <script>
+        // Функция для извлечения JWT-токена из cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        // Получаем модальное окно
+        var modal = document.getElementById("registrationModal");
+
+        // Получаем элемент <span>, который закрывает модальное окно
+        var span = document.getElementsByClassName("close")[0];
+
+        // Когда пользователь открывает страницу, показываем модальное окно
+        window.onload = function() {
+            modal.style.display = "block";
+        }
+
+        // Обработка формы входа
+        document.getElementById("registrationForm").onsubmit = async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('hashed_password').value;
+
+            try {
+                const response = await fetch('http://192.168.1.72:1500/login_user/auth_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        hashed_password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Вход выполнен успешно!");
+                    modal.style.display = "none"; // Закрываем модальное окно только после успешного входа
+                    // Автоматически вызываем get_auth_user после успешного входа
+                    await get_auth_user();
+                } else {
+                    alert("Ошибка: " + result.message); // Показываем ошибку, если вход не удался
+                }
+            } catch (error) {
+                alert("Ошибка при отправке данных: " + error.message);
             }
-            else {
-                const error = await response.json();
-                console.log(error.message);
+        };
+
+        async function get_auth_user() {
+            const jwtToken = getCookie("access_token"); // Извлекаем JWT-токен из cookie
+
+            if (!jwtToken) {
+                alert("JWT-токен не найден. Пожалуйста, войдите в систему.");
+                return;
+            }
+            const url = new URL('http://192.168.1.72:1500/login_user/auth_user_header');
+            url.searchParams.set('token', jwtToken);
+            try {
+                const response_get_user = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8',
+                        'Authorization': `${jwtToken}` // Добавляем JWT-токен в заголовок
+                    },
+                });
+
+                if (!response_get_user.ok) {
+                    throw new Error("Ошибка при выполнении запроса");
+                }
+
+                const userData = await response_get_user.json();
+                displayUserData(userData);
+            } catch (error) {
+                alert("Ошибка: " + error.message);
             }
         }
-  
-        // сброс данных формы после отправки
-        function reset() {
-            document.getElementById("address").value = 
-            document.getElementById("floor").value =
-            document.getElementById("full_name").value =
-            document.getElementById("position_at_work").value =
-            document.getElementById("computer_name").value =
-            document.getElementById("work_group").value = 
-            document.getElementById("comment").value = "";
+
+        async function register_user() {
+            const register_data = {
+                email: document.getElementById('email').value,
+                hashed_password: document.getElementById('hashed_password').value
+            };
+
+            const responce_register = await fetch('http://192.168.1.72:1500/register_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(register_data)
+                
+            });
+            return response.json();
         }
-        function row(user) {
-  
-            const tr = document.createElement("tr");
-            tr.setAttribute("data-rowid", user.id);
-  
-            const nameTd = document.createElement("td");
-            nameTd.append(user.name);
-            tr.append(nameTd);
-  
-            const ageTd = document.createElement("td");
-            ageTd.append(user.age);
-            tr.append(ageTd);
-  
-            const linksTd = document.createElement("td");
-  
-            const editLink = document.createElement("button"); 
-            editLink.append("Изменить");
-            editLink.addEventListener("click", async() => await getUser(user.id));
-            linksTd.append(editLink);
-  
-            const removeLink = document.createElement("button"); 
-            removeLink.append("Удалить");
-            removeLink.addEventListener("click", async () => await deleteUser(user.id));
-  
-            linksTd.append(removeLink);
-            tr.appendChild(linksTd);
-  
-            return tr;
+
+        async function create_user() {
+            const data = {
+                address: document.getElementById('address').value,
+                floor: document.getElementById('floor').value,
+                cabinet: document.getElementById('cabinet').value,
+                full_name: document.getElementById('full_name').value,
+                position_at_work: document.getElementById('position_at_work').value,
+                computer_name: document.getElementById('computer_name').value,
+                work_group: document.getElementById('work_group').value,
+                ip_address: document.getElementById('ip_address').value,
+                kaspersky: document.getElementById('kaspersky').value,
+                comment: document.getElementById('comment').value,
+                windows: document.getElementById('windows').value
+            };
+
+            const response = await fetch('http://192.168.1.72:1500/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(data)
+            });
+            return response.json();
         }
-        function row(user) {
-            const tr = document.createElement("tr");
-            tr.setAttribute("data-rowid", user.id);
 
-            const nameTd = document.createElement("td");
-            nameTd.append(user.name);
-            tr.append(nameTd);
+        async function edit_user() {
+            const data_edit_name = {
+                computer_name: document.getElementById('computer_name').value
+            };
+            let data_edit = {
+                address: document.getElementById('address').value,
+                floor: document.getElementById('floor').value,
+                cabinet: document.getElementById('cabinet').value,
+                full_name: document.getElementById('full_name').value,
+                position_at_work: document.getElementById('position_at_work').value,
+                computer_name: document.getElementById('computer_name').value,
+                work_group: document.getElementById('work_group').value,
+                ip_address: document.getElementById('ip_address').value,
+                kaspersky: document.getElementById('kaspersky').value,
+                comment: document.getElementById('comment').value,
+                windows: document.getElementById('windows').value
+            };
+            for (let key in data_edit) {
+                if (data_edit[key] === "") {
+                    delete data_edit[key];
+                }
+            }
 
-            const ageTd = document.createElement("td");
-            ageTd.append(user.age);
-            tr.append(ageTd);
+            const url = new URL('http://192.168.1.72:1500/update_user');
+            url.searchParams.set('computer_name', data_edit_name.computer_name);
+            const response_edit = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(data_edit)
+            });
+            return response_edit.json();
+        }
 
-            const linksTd = document.createElement("td");
+        async function delete_user() {
+            const data_delete = {
+                computer_name: document.getElementById('computer_name').value
+            };
+            const url = new URL('http://192.168.1.72:1500/delete');
+            url.searchParams.set('computer_name', data_delete.computer_name);
+            const response_delete = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(data_delete)
+            });
+            return response_delete.json();
+        }
 
-            const editLink = document.createElement("button"); 
-            editLink.append("Изменить");
-            editLink.addEventListener("click", async() => await getUser(user.id));
-            linksTd.append(editLink);
+        async function get_user() {
+            const data_get_user = {
+                computer_name: document.getElementById('computer_name').value,
+                address: document.getElementById('address').value,
+                full_name: document.getElementById('full_name').value
+            };
+            const url = new URL('http://192.168.1.72:1500/get_user');
+            if (data_get_user.computer_name) {
+            url.searchParams.set('computer_name', data_get_user.computer_name);
+            }
+            if (data_get_user.address) {
+            url.searchParams.set('address', data_get_user.address);
+            }
+            if (data_get_user.full_name) {
+            url.searchParams.set('full_name', data_get_user.full_name);
+            }
+            const response_get_user = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+            });
+            const userData = await response_get_user.json();
+            displayUserData(userData);
+        }
 
-            const removeLink = document.createElement("button"); 
-            removeLink.append("Удалить");
-            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+        function displayUserData(userData) {
+            const userInfoDiv = document.getElementById('user-info');
+            userInfoDiv.innerHTML = ''; // Очищаем предыдущие данные
 
-            linksTd.append(removeLink);
-            tr.appendChild(linksTd);
-            return tr;
-}
-        // сброс значений формы
-        document.getElementById("resetBtn").addEventListener("click", () =>  reset());
-  
-        // отправка формы
-        document.getElementById("saveBtn").addEventListener("click", async () => {
-             
-            const address = document.getElementById("address").value;
-            const floor = document.getElementById("floor").value;
-            const full_name = document.getElementById("full_name").value;
-            const position_at_work = document.getElementById("position_at_work").value;
-            const computer_name = document.getElementById("computer_name").value;
-            const work_group = document.getElementById("work_group").value;
-            const comment = document.getElementById("comment").value;
-            await createUser(address, floor, full_name, position_at_work, computer_name, work_group, comment);
-        });
-</script>
+            if (userData.length === 0) {
+                userInfoDiv.innerHTML = '<p>Данные не найдены.</p>';
+                return;
+            }
+
+            // Создаем таблицу
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            // Создаем заголовки таблицы
+            const headers = ["№", "Адрес", "Этаж", "Кабинет", "ФИО", "Должность", "Имя компьютера", "Рабочая группа", "ip-адрес", "Kaspersky", "Комментарий", "Windows"];
+            const headerRow = document.createElement('tr');
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Заполняем таблицу данными
+            userData.forEach((user, index) => {
+                const row = document.createElement('tr');
+
+                // Добавляем ячейку с номером строки
+                const numberCell = document.createElement('td');
+                numberCell.textContent = index + 1; // Нумерация с 1
+                row.appendChild(numberCell);
+
+                // Добавляем остальные ячейки
+                const fields = ["address", "floor", "cabinet", "full_name", "position_at_work", "computer_name", "work_group", "ip_address", "kaspersky", "comment", "windows"];
+                fields.forEach(field => {
+                    const cell = document.createElement('td');
+                    cell.textContent = user[field] || ''; // Если значение отсутствует, оставляем пустую строку
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            userInfoDiv.appendChild(table);
+        }
+    </script>
 </body>
 </html>
