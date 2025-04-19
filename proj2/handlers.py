@@ -1,11 +1,9 @@
 from logging import getLogger
-
-from fastapi import APIRouter, Form
+from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Body
 from proj2.user import _create_new_user
 from proj2.user import _delete_user
 from proj2.user import _get_user_by_name
@@ -27,7 +25,7 @@ user_router = APIRouter()
 
 @user_router.get("/")
 def root():
-    return FileResponse("public/v2.html")
+    return FileResponse("public/index.html")
 
 
 @user_router.post("/create", response_model=ShowUser)
@@ -41,35 +39,35 @@ async def create_user(body: User_create, db: AsyncSession = Depends(get_async_se
 
 @user_router.delete("/delete", response_model=DeleteUserResponse)
 async def delete_user(
-    full_name: str,
+    computer_name: str,
     db: AsyncSession = Depends(get_async_session)
 ) -> DeleteUserResponse:
-    user_for_deletion = await _get_user_by_name(full_name, db)
+    user_for_deletion = await _get_user_by_name(computer_name, db)
     if user_for_deletion is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {full_name} not found."
+            status_code=404, detail=f"User with id {computer_name} not found."
         )
-    deleted_user_name = await _delete_user(full_name, db)
+    deleted_user_name = await _delete_user(computer_name, db)
     if deleted_user_name is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {full_name} not found."
+            status_code=404, detail=f"User with id {computer_name} not found."
         )
     return DeleteUserResponse(deleted_user_name=deleted_user_name)
 
 
 @user_router.get("/get user", response_model=ShowUser)
-async def get_user_by_name(full_name: str, db: AsyncSession = Depends(get_async_session)) -> Union[str, None]:
-    user = await _get_user_by_name(full_name=full_name, session=db)
+async def get_user_by_name(computer_name: str, db: AsyncSession = Depends(get_async_session)) -> Union[str, None]:
+    user = await _get_user_by_name(computer_name=computer_name, session=db)
     if user is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {full_name} not found."
+            status_code=404, detail=f"User with id {computer_name} not found."
         )
     return user
 
 
 @user_router.patch("/update_user", response_model=UpdatedUserResponse)
 async def update_user_by_name(
-    full_name: str,
+    computer_name: str,
     body: UpdateUserRequest,
     db: AsyncSession = Depends(get_async_session),
 ) -> UpdatedUserResponse:
@@ -79,14 +77,14 @@ async def update_user_by_name(
             status_code=422,
             detail="At least one parameter for user update info should be provided",
         )
-    user_for_update = await _get_user_by_name(full_name, db)
+    user_for_update = await _get_user_by_name(computer_name, db)
     if user_for_update is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {full_name} not found."
+            status_code=404, detail=f"User with id {computer_name} not found."
         )
     try:
-        updated_user_name = await _update_user(full_name=full_name, updated_user_params=updated_user_params, session=db)
+        updated_computer_name = await _update_user(computer_name=computer_name, updated_user_params=updated_user_params, session=db)
     except IntegrityError as err:
         logger.error(err)
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
-    return UpdatedUserResponse(updated_user_name=updated_user_name)
+    return UpdatedUserResponse(updated_computer_name=updated_computer_name)

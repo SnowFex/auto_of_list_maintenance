@@ -3,12 +3,17 @@ from app.DB_Creator.db_api import Base
 
 
 class Notes(Base):
-    __tablename__ = "notes"
+    __tablename__ = "testnotes"
 
-    address = Column(String, nullable=False)
-    floor = Column(Integer, primary_key=True, nullable=False)
-    full_name = Column(String, nullable=False)
-    position_at_work = Column(String, nullable=False)
-    computer_name = Column(String, nullable=False)
-    work_group = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    address = Column(String)
+    floor = Column(String)
+    cabinet = Column(String)
+    full_name = Column(String)
+    position_at_work = Column(String)
+    computer_name = Column(String)
+    work_group = Column(String)
+    ip_address = Column(String)
+    kaspersky = Column(String)
     comment = Column(String)
+    windows = Column(String)

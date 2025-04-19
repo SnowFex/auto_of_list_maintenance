@@ -1,0 +1,27 @@
+version: '3'
+services:
+  my-app:
+    image: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Tnimcnotes
+      DB_USER: postgres
+      DB_PASS: 757302Nikita
+    ports:
+      - 1500:8000
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: "Tnimcnotes"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "757302Nikita"
+    cap_add:
+      - CAP_DAC_OVERRIDE
+    volumes:
+      - .:/docker-entrypoint-initdb.d
+      - ./postgres/datadir/:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
